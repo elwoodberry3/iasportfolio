@@ -1,9 +1,20 @@
+/**
+ * LAYOUT
+ * IAS Portfolio
+ */
+
 import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "@/styles/globals.css";
-import { site } from "@/lib/site.config";
+
+import { Space_Grotesk, Space_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+
+import "./globals.css";
+
+import { site } from "@/lib/site.config";
+import localFont from "next/font/local";
+
+// import "@/globals.css";
 
 /**
  * Fonts are self-hosted (woff2 in ./fonts) rather than fetched from Google
@@ -11,7 +22,7 @@ import { SiteFooter } from "@/components/SiteFooter";
  * third-party runtime request — the whole site ships from one origin.
  */
 const spaceGrotesk = localFont({
-  variable: "--font-space-grotesk",
+  variable: "--font-grotesk",
   display: "swap",
   src: [
     { path: "./fonts/space-grotesk-latin-400-normal.woff2", weight: "400", style: "normal" },
@@ -22,7 +33,7 @@ const spaceGrotesk = localFont({
 });
 
 const dmSans = localFont({
-  variable: "--font-dm-sans",
+  variable: "--font-body",
   display: "swap",
   src: [
     { path: "./fonts/dm-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
@@ -33,7 +44,7 @@ const dmSans = localFont({
 });
 
 const spaceMono = localFont({
-  variable: "--font-space-mono",
+  variable: "--font-mono",
   display: "swap",
   src: [
     { path: "./fonts/space-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
@@ -55,6 +66,38 @@ export const metadata: Metadata = {
   },
 };
 
+
+
+
+
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={`${grotesk.variable} ${mono.variable} ${body.variable}`}>
+      <body className="flex min-h-screen flex-col">   {/* bg/color/font come from globals.css @layer base — don't repeat them here */}
+        
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-primary focus:px-4 focus:py-2 focus:text-white">
+          Skip to Content
+        </a>
+
+        <SiteHeader />
+        <main id="main" className="flex-1">
+          {children}
+        </main>
+        <SiteFooter />
+        
+      </body>
+    </html>
+  );
+}
+
+
+
+
+
+
+
+/*
 export default function RootLayout({
   children,
 }: {
@@ -79,3 +122,4 @@ export default function RootLayout({
     </html>
   );
 }
+*/
