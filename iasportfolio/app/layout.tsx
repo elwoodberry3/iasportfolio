@@ -1,27 +1,22 @@
 /**
- * LAYOUT
- * IAS Portfolio
+ * LAYOUT — IAS Portfolio  ·  canonical shell, root chrome
+ *
+ * Fonts self-hosted (woff2 in ./fonts) — one origin, no build-time Google fetch.
+ * Variable names are the canonical IAS names the shared Tailwind preset reads:
+ * --font-grotesk / --font-body / --font-mono.
+ *
+ * NOTE: `next/font/local` resolves from node_modules/next — run `npm install` in
+ * this app folder if your editor flags it. There is NO `next/` directory in the repo.
  */
 
 import type { Metadata } from "next";
-
-import { Space_Grotesk, Space_Mono } from "next/font/google";
+import localFont from "next/font/local";
+import "./globals.css";
+import { site } from "@/lib/site.config";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 
-import "./globals.css";
-
-import { site } from "@/lib/site.config";
-import localFont from "next/font/local";
-
-// import "@/globals.css";
-
-/**
- * Fonts are self-hosted (woff2 in ./fonts) rather than fetched from Google
- * Fonts at build time. This removes a build-time network dependency and a
- * third-party runtime request — the whole site ships from one origin.
- */
-const spaceGrotesk = localFont({
+const grotesk = localFont({
   variable: "--font-grotesk",
   display: "swap",
   src: [
@@ -32,7 +27,7 @@ const spaceGrotesk = localFont({
   ],
 });
 
-const dmSans = localFont({
+const body = localFont({
   variable: "--font-body",
   display: "swap",
   src: [
@@ -43,7 +38,7 @@ const dmSans = localFont({
   ],
 });
 
-const spaceMono = localFont({
+const mono = localFont({
   variable: "--font-mono",
   display: "swap",
   src: [
@@ -66,49 +61,10 @@ export const metadata: Metadata = {
   },
 };
 
-
-
-
-
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${grotesk.variable} ${mono.variable} ${body.variable}`}>
-      <body className="flex min-h-screen flex-col">   {/* bg/color/font come from globals.css @layer base — don't repeat them here */}
-        
-        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-primary focus:px-4 focus:py-2 focus:text-white">
-          Skip to Content
-        </a>
-
-        <SiteHeader />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
-        <SiteFooter />
-        
-      </body>
-    </html>
-  );
-}
-
-
-
-
-
-
-
-/*
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html
-      lang="en"
-      className={`${spaceGrotesk.variable} ${dmSans.variable} ${spaceMono.variable}`}
-    >
-      <body>
+    <html lang="en" className={`${grotesk.variable} ${body.variable} ${mono.variable}`}>
+      <body className="flex min-h-screen flex-col">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-primary focus:px-4 focus:py-2 focus:text-white"
@@ -116,10 +72,11 @@ export default function RootLayout({
           Skip to content
         </a>
         <SiteHeader />
-        <main id="main">{children}</main>
+        <main id="main" className="flex-1">
+          {children}
+        </main>
         <SiteFooter />
       </body>
     </html>
   );
 }
-*/
