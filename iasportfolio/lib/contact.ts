@@ -1,22 +1,18 @@
 /**
- * contact.ts — bridges the /contact form to the IAS universal upsert webhook.
+ * contact.ts — bridges the /contact form to the IAS Unified Intake webhook.
  *
  * The form speaks the repo's persona vocabulary (executive / recruiter /
- * consulting). The ecosystem webhook speaks the schema's ias_source vocabulary
- * (portfolio_*). This file is the single mapping seam between the two, so the
- * form component never has to know the wire contract and the contract can
- * change without touching UI.
+ * consulting). The ecosystem webhook (`/webhook/ias-lead`) speaks a FLAT schema:
+ *   { email, first_name, stage, ias_source, ias_last_asset, ... }
+ * This file is the single mapping seam. buildEnvelope now returns that flat body
+ * directly (previously it nested everything under `contact`, which the unified
+ * workflow does not read — email came through undefined and the lead was dropped).
  *
- * Static-export safe: everything here runs in the browser. No server route —
- * output:"export" forbids one — the form POSTs straight to n8n.
+ * The form POSTs this body to /api/contact (same-origin), and that server route
+ * forwards to n8n with the x-ias-secret header. Nothing here touches the secret.
  */
 
 // ── Repo persona id -> schema ias_source ────────────────────────────────────
-// The repo collapses "executive" and "hiring manager" into one card. The
-// ecosystem distinguishes them, so we resolve using a second signal: an org
-// with a recruiting-agency shape stays exec; otherwise an "executive" who
-// names a role maps to hiring_manager. Without that signal we default to the
-// safer, higher-intent portfolio_exec (direct-hire / retainer path).
 export type RepoPersona = "executive" | "recruiter" | "consulting";
 
 export type IasSource =
@@ -32,7 +28,7 @@ export function personaToSource(persona: RepoPersona): IasSource {
     case "recruiter":
       return "portfolio_recruiter";
     case "consulting":
-      // "Automate a workflow for my team" — the Don Seelye case.
+      // "Automate a workflow for my team" — retainer / consulting path.
       return "portfolio_exec";
     case "executive":
     default:
@@ -41,42 +37,23 @@ export function personaToSource(persona: RepoPersona): IasSource {
   }
 }
 
-// ── Acquisition channel (ias_source_channel) ────────────────────────────────
+// ── Acquisition channel ──────────────────────────────────────────────────────
 export type IasChannel =
-  | "linkedin"
-  | "youtube"
-  | "instagram"
-  | "facebook"
-  | "tiktok"
-  | "threads"
-  | "direct"
-  | "referral";
+  | "linkedin" | "youtube" | "instagram" | "facebook"
+  | "tiktok" | "threads" | "direct" | "referral";
 
 const CHANNELS: IasChannel[] = [
-  "linkedin",
-  "youtube",
-  "instagram",
-  "facebook",
-  "tiktok",
-  "threads",
-  "direct",
-  "referral",
+  "linkedin", "youtube", "instagram", "facebook",
+  "tiktok", "threads", "direct", "referral",
 ];
 
-/**
- * Read channel from UTM first (deterministic), then referrer (fallback).
- * First-party only — no third-party pixels. Safe to call in the browser.
- */
+/** Read channel from UTM first (deterministic), then referrer. Browser-safe. */
 export function readChannel(): IasChannel {
   if (typeof window === "undefined") return "direct";
-
   const params = new URLSearchParams(window.location.search);
-  const utm = (params.get("utm_source") || params.get("ref") || "")
-    .toLowerCase()
-    .trim();
+  const utm = (params.get("utm_source") || params.get("ref") || "").toLowerCase().trim();
   const fromUtm = CHANNELS.find((c) => c === utm);
   if (fromUtm) return fromUtm;
-
   const ref = (typeof document !== "undefined" ? document.referrer : "").toLowerCase();
   if (!ref) return "direct";
   if (ref.includes("lnkd.in") || ref.includes("linkedin")) return "linkedin";
@@ -88,26 +65,26 @@ export function readChannel(): IasChannel {
   return "referral";
 }
 
-// ── The wire contract (mirror of ecosystem contacts.schema.ts) ──────────────
-export interface IasContactInput {
+/**
+ * The FLAT wire contract the unified `ias-lead` workflow reads.
+ * Extra fields (channel, company, last_name, message) are retained by n8n but
+ * do not affect routing; the workflow keys on email, stage, ias_source.
+ */
+export interface UnifiedIntakeBody {
   email: string;
-  firstName?: string;
-  lastName?: string;
+  first_name: string;
+  last_name?: string;
   company?: string;
-  source: IasSource;
+  stage: "contact";                 // Portfolio contact form is always stage=contact
+  ias_source: IasSource;            // persona -> portfolio_* (a valid enum value)
+  ias_last_asset: string;           // campaign axis (free text)
   channel?: IasChannel;
-  lastAsset?: string;
   message?: string;
-}
-
-export interface UpsertEnvelope {
-  contact: IasContactInput;
-  emailTemplate: "portfolio-ack";
   meta?: Record<string, unknown>;
 }
 
 /**
- * Build the envelope the webhook expects. Splits a single "name" field into
+ * Build the flat body the webhook expects. Splits a single "name" field into
  * first/last on the first space (the form collects one name field).
  */
 export function buildEnvelope(input: {
@@ -116,25 +93,22 @@ export function buildEnvelope(input: {
   email: string;
   org?: string;
   message: string;
-}): UpsertEnvelope {
+}): UnifiedIntakeBody {
   const trimmed = input.name.trim();
   const spaceAt = trimmed.indexOf(" ");
   const firstName = spaceAt === -1 ? trimmed : trimmed.slice(0, spaceAt);
   const lastName = spaceAt === -1 ? "" : trimmed.slice(spaceAt + 1);
 
   return {
-    contact: {
-      email: input.email.trim().toLowerCase(),
-      firstName,
-      lastName,
-      company: input.org?.trim() || "",
-      source: personaToSource(input.persona),
-      channel: readChannel(),
-      lastAsset: "booking-ack",
-      message: input.message.trim(),
-    },
-    emailTemplate: "portfolio-ack",
-    // Tells n8n to also fire the internal portfolio-notify to Elwood.
+    email: input.email.trim().toLowerCase(),
+    first_name: firstName,
+    last_name: lastName,
+    company: input.org?.trim() || "",
+    stage: "contact",
+    ias_source: personaToSource(input.persona),
+    ias_last_asset: "contact-form",
+    channel: readChannel(),
+    message: input.message.trim(),
     meta: { alsoNotify: "portfolio-notify", origin: "portfolio-contact" },
   };
 }

@@ -15,7 +15,7 @@ import { buildEnvelope, type RepoPersona } from "@/lib/contact";
  * Until then the form validates and confirms without transmitting.
  */
 
-const ENDPOINT = process.env.NEXT_PUBLIC_CONTACT_ENDPOINT ?? "";
+const ENDPOINT = "/api/contact"; // same-origin server route injects the n8n secret
 
 // https://plutomation.app.n8n.cloud/webhook/ias-contact-upsert
 // https://iautomateshit.app.n8n.cloud/webhook/ias-contact-upsert

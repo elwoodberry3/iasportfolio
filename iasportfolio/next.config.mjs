@@ -1,17 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Static export — deploys as pure static files to Vercel / any CDN.
-  output: "export",
+  // NOTE: `output: "export"` was REMOVED. Static export forbids route handlers,
+  // and /api/contact must run on the server so the n8n secret (x-ias-secret) is
+  // never shipped to the browser. On Vercel this deploys as a normal Next app —
+  // no config needed. The rest of the site is still statically rendered where it
+  // can be; only the one API route is dynamic.
 
-  // Static export cannot use the Image Optimization API, so serve images as-is.
+  // Kept from the static config so nothing else changes visually.
   images: {
     unoptimized: true,
   },
-
-  // Emit /demos/index.html instead of /demos.html so folder-style routes
-  // resolve cleanly on static hosts.
   trailingSlash: true,
-
   reactStrictMode: true,
 };
 
