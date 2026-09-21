@@ -99,14 +99,14 @@ export interface SocialLink {
     | "instagram";
 }
 
-const PLACEHOLDER_URL = "http://ias-placeholder-url.com";
+// const PLACEHOLDER_URL = "http://ias-placeholder-url.com";
 
 export const socials: SocialLink[] = [
   { label: "GitHub", icon: "github", href: "https://github.com/elwoodberry3" },
-  { label: "TikTok", icon: "tiktok", href: PLACEHOLDER_URL }, // TODO: confirm URL
-  { label: "YouTube", icon: "youtube", href: PLACEHOLDER_URL }, // TODO: handle unconfirmed
-  { label: "LinkedIn", icon: "linkedin", href: PLACEHOLDER_URL }, // TODO: confirm URL
-  { label: "X", icon: "x", href: PLACEHOLDER_URL }, // TODO: confirm URL
-  { label: "Facebook", icon: "facebook", href: PLACEHOLDER_URL }, // TODO: confirm URL
-  { label: "Instagram", icon: "instagram", href: PLACEHOLDER_URL }, // TODO: confirm URL
+  { label: "TikTok", icon: "tiktok", href: "https://www.tiktok.com/@iautomateshit" },
+  { label: "YouTube", icon: "youtube", href: "https://www.youtube.com/@iautomatesht" },
+  { label: "LinkedIn", icon: "linkedin", href: "https://www.linkedin.com/company/ias-bootcamp" },
+  { label: "X", icon: "x", href: "https://www.tiktok.com/@iautomateshit" },
+  { label: "Facebook", icon: "facebook", href: "https://www.facebook.com/people/I-Automate-Sht/61593049247788/" },
+  { label: "Instagram", icon: "instagram", href: "https://www.instagram.com/iautomatesht" },
 ];
