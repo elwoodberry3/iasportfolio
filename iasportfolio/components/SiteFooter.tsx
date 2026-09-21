@@ -13,7 +13,11 @@ export function SiteFooter() {
       <Container className="grid gap-10 py-14 lg:grid-cols-[1fr_auto] lg:gap-8">
         {/* Left: logo, tagline, address, phone */}
         <div className="max-w-md">
-          <LogoDarkMode />
+
+          <Link href="/" aria-label={`${site.name} home`}>
+            <LogoDarkMode />
+          </Link>
+          
           <p className="mt-4 text-base leading-relaxed">
             {t.lead}
             <br />
