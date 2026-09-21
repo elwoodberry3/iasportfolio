@@ -14,7 +14,7 @@ export function SiteFooter() {
         {/* Left: logo, tagline, address, phone */}
         <div className="max-w-md">
 
-          <Link href="/" aria-label={`${site.name} home`}>
+          <Link href="/">
             <LogoDarkMode />
           </Link>
           
